@@ -32,7 +32,32 @@ function indices = VQEncode(input, codebook)
 %     Type: 1D/scalar integer array
 %     Organization: one index per input sample/column
 
+%% Error checking
+    assert(isnumeric(input), "Input isn't a numeric type");
+    assert(isnumeric(codebook), "Codebook isn't a numeric type");
     
+    assert(len(size(input)) == 2, sprintf( ...
+        'Input data must be a 2D variable; is %dD instead', ...
+        len(size(input))));
+    
+    assert(len(size(codebook)) == 2, sprintf( ...
+        'Codebook must be a 2D variable; is %dD instead', ...
+        len(size(codebook))));
+    
+    assert(size(codebook, 1) == size(input, 1), sprintf( ...
+        "Input (%d) and codebook (%d) don't have same number of rows", ...
+        size(input, 1), size(codebook, 1)));
+    
+%% Distance calculating    
+    distances = zeros(size(codebook, 2), size(input, 2));
+    for x = 1 : size(codebook, 2)
+        distanceToVec = input - codebook(:, x);
+        distances(x, :) = sum(distanceToVec.^2); % If you want to change
+                                                 %  metric, like inf or
+    end                                          %  0 or 1-norm, do it
+    [~, indices] = min(distances);               %  here!
+    
+    % TODO: research "MatLAB Unit Testing"
 
 end
 
