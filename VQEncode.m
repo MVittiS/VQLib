@@ -1,4 +1,4 @@
-function indices = VQEncode(input, codebook)
+function indices = VQEncode(input, codebook, useGPU)
 %VQENCODE Encodes input data given a VQ codebook
 %
 %   This function encodes data into the given codebook under a
@@ -7,8 +7,8 @@ function indices = VQEncode(input, codebook)
 %   gpuArray() input data, and that makes the algorithm significantly
 %   faster.
 %
-%   Instead of calculating the distance directly for every sample using the
-%   minus operator (because  MatLAB is stupid enough to try allocating
+%   Instead of calculating the distance directly against every sample using
+%   the minus operator (because  MatLAB is stupid enough to try allocating
 %   `prod([size(input) size(codebook)])` entries, making this solution
 %   infeasible for any worthwhile dataset), we instead calculate the
 %   distance of all input samples for each codebook entry individually, and
@@ -32,9 +32,22 @@ function indices = VQEncode(input, codebook)
 %     Type: 1D/scalar integer array
 %     Organization: one index per input sample/column
 
-%% Error checking
+%% Size and type checking
     assert(isnumeric(input), "Input isn't a numeric type");
     assert(isnumeric(codebook), "Codebook isn't a numeric type");
+    
+    if ~exist('useGPU', 'var')
+        useGPU = false;
+    end
+    assert(islogical(useGPU), "Veriable 'useGPU' must be logical");
+    if useGPU
+        try
+            gpuDevice();
+        catch
+            useGPU = false;
+            assert(0, "Your computer or GPU doesn't support CUDA");
+        end
+    end
     
     assert(len(size(input)) == 2, sprintf( ...
         'Input data must be a 2D variable; is %dD instead', ...
@@ -48,16 +61,19 @@ function indices = VQEncode(input, codebook)
         "Input (%d) and codebook (%d) don't have same number of rows", ...
         size(input, 1), size(codebook, 1)));
     
-%% Distance calculating    
-    distances = zeros(size(codebook, 2), size(input, 2));
+    
+%% Distance calculating
+    if useGpu
+        distances = gpuArray(single(zeros(...
+            size(codebook, 2), size(input, 2))));
+    else
+        distances = zeros(size(codebook, 2), size(input, 2));
+    end
     for x = 1 : size(codebook, 2)
         distanceToVec = input - codebook(:, x);
         distances(x, :) = sum(distanceToVec.^2); % If you want to change
                                                  %  metric, like inf or
     end                                          %  0 or 1-norm, do it
     [~, indices] = min(distances);               %  here!
-    
-    % TODO: research "MatLAB Unit Testing"
-
 end
 
