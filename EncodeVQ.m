@@ -1,20 +1,24 @@
-function indices = VQEncode(input, codebook, useGPU)
-%VQENCODE Encodes input data given a VQ codebook
+function indices = EncodeVQ(input, codebook, useGPU)
+%ENCODEVQ Encodes input data given a VQ codebook
 %
 %   This function encodes data into the given codebook under a
-%   least-squares criteria; that is, it finds the codebook entry that is
-%   closest to a given data point. It also runs fine on Nvidia GPUs using
-%   gpuArray() input data, and that makes the algorithm significantly
-%   faster.
+%     least-squares criteria; that is, it finds the codebook entry that is
+%     closest to a given data point. It also runs fine on Nvidia GPUs using
+%     gpuArray() input data, and that makes the algorithm significantly
+%     faster.
 %
 %   Instead of calculating the distance directly against every sample using
-%   the minus operator (because  MatLAB is stupid enough to try allocating
-%   `prod([size(input) size(codebook)])` entries, making this solution
-%   infeasible for any worthwhile dataset), we instead calculate the
-%   distance of all input samples for each codebook entry individually, and
-%   then at the end find the one whose distance is smallest. This also
-%   works much better for GPUs, and will be faster as long as the number
-%   input samples is much larger than codebook entries.
+%     the minus operator (because  MatLAB is stupid enough to try allocating
+%     `prod([size(input) size(codebook)])` entries, making this solution
+%     infeasible for any worthwhile dataset), we instead calculate the
+%     distance of all input samples for each codebook entry individually,
+%     and then at the end find the one whose distance is smallest. 
+%   This also works much better for GPUs, and will be faster as long as
+%     the number of input samples is much larger than codebook entries,
+%      and the GPU has enough memory to hold two copies of the dataset.
+%   If not, we keep trying by using a bissecting sort until we can find
+%     a subset of data that fits the GPU and proceed from there on.
+%   
 %
 %   Input Arguments:
 %
@@ -32,23 +36,18 @@ function indices = VQEncode(input, codebook, useGPU)
 %     Type: 1D/scalar integer array
 %     Organization: one index per input sample/column
 
-%% Size and type checking
+%% Type checking
     assert(isnumeric(input), "Input isn't a numeric type");
     assert(isnumeric(codebook), "Codebook isn't a numeric type");
     
     if ~exist('useGPU', 'var')
         useGPU = false;
     end
-    assert(islogical(useGPU), "Veriable 'useGPU' must be logical");
-    if useGPU
-        try
-            gpuDevice();
-        catch
-            useGPU = false;
-            assert(0, "Your computer or GPU doesn't support CUDA");
-        end
-    end
+
+    assert(islogical(useGPU), "useGPU must be logical");
+    assert(isscalar(useGPU), "useGPU must be scalar");
     
+%% Size checking
     assert(len(size(input)) == 2, sprintf( ...
         'Input data must be a 2D variable; is %dD instead', ...
         len(size(input))));
@@ -61,8 +60,18 @@ function indices = VQEncode(input, codebook, useGPU)
         "Input (%d) and codebook (%d) don't have same number of rows", ...
         size(input, 1), size(codebook, 1)));
     
+%% Feature checking
+    if useGPU
+        try
+            gpuDevice();
+        catch
+            useGPU = false;
+            assert(0, "Your computer or GPU doesn't support CUDA");
+        end
+    end
+
     
-%% Distance calculating
+%% Function Body
     if useGpu
         distances = gpuArray(single(zeros(...
             size(codebook, 2), size(input, 2))));
