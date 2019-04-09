@@ -1,14 +1,14 @@
-function [codebook, indices] = GenVQDict(dataset, numVecs, codebook)
+function [codebook, indices] = GenVQDict(dataset, numVecs, codebook, useGPU)
 %GENVQDICT Generates a VQ Codebook using the MVS algorithm
 %   This function generates a near-optimal VQ codebook given the desired
-%   number of entries. It also accepts partially calculated codebooks,
-%   allowing for continuation if the codebook generation is too slow or
-%   requires a large dataset.
+%     number of entries. It also accepts partially calculated codebooks,
+%     allowing for continuation if the codebook generation is too slow or
+%     requires a large dataset.
 %
 %   It also runs fine on Nvidia GPUs using gpuArray(), providing a
-%   significant speed boost over regular CPUs, though vectorized this
-%   function may be - typical CPU utilization is around 300% on Unix
-%   systems.
+%     significant speed boost over regular CPUs, though vectorized this
+%     function may be - typical CPU utilization is around 300% on Unix
+%     systems.
 %
 %
 %   Input Arguments:
@@ -18,28 +18,77 @@ function [codebook, indices] = GenVQDict(dataset, numVecs, codebook)
 %     Organization: 1D samples in every column, dimensions in every row
 %
 %   'numVecs' - Amount of entries in your codebook.
-%     Type: 1D/scalar, integer or integer-convertible
+%     Type: scalar, integer or integer-convertible
 %
 %   'codebook' - Optional, partial codebook to continue from.
 %     Type: 2D floating point matrix (from single to gpuArray:double)
-%     Organization: 1D entries in every column, dimensions in every row
-    
-    segmentLength = size(dataset, 1);
-    % TODO: dimensional error checking
-    existingVecs = 1;
-    
+%     Organization: flat entries in every column, dimensions in every row
+%
+%   'useGPU' - Optional, flag to indicate GPU (CUDA) acceleration.
+%     Type: scalar, logical
+
+%% Optional arguments checking
+    if ~exist('useGPU', 'var')
+        useGPU = false;
+    end
+
     if ~exist('codebook', 'var') || isempty(codebook)
         codebook = zeros(segmentLength, numVecs);
         codebook(:, 1) = mean(dataset, 2);
+        existingVecs = 1;
     else
         existingVecs = find(any(codebook), 1, 'last') + 1;
     end
+
+%% Size checking
+    assert(len(size(dataset)) == 2, sprintf( ...
+        'Input data must be a 2D variable; is %dD instead', ...
+        len(size(input))));
     
+    segmentLength = size(dataset, 1);
+
+    assert(len(size(codebook)) == 2, sprintf( ...
+        'Codebook must be a 2D variable; is %dD instead', ...
+        len(size(codebook))));
+    
+    assert(size(codebook, 1) == size(dataset, 1), sprintf( ...
+        "Input (%d) and codebook (%d) don't have same number of rows", ...
+        size(input, 1), size(codebook, 1)));
+
+%% Type Checking
+    assert(isnumeric(dataset), sprintf( ...
+        'Dataset is not a numeric type; is %s instead', ...
+        class(dataset)));
+
+    assert(isnumeric(numVecs), sprintf( ...
+        'numVecs is not a numeric type; is %s instead', ...
+        class(numVecs)));
+
+    assert(isscalar(numVecs), sprintf( ...
+        'numVecs is not a scalar'));
+    
+    assert(isnumeric(codebook), sprintf( ...
+        'Codebook is not a numeric type; is %s instead', ...
+        class(codebook)));
+    
+%% Feature Checking
+    if (useGPU)
+        try
+            gpuDevice();
+        catch
+            throw(MException('TrainVQ:NaNCodebook',...
+                    'Error! Dictionary has NaN entries.'));
+        end
+    end
+
+
+%% Main Loop
+
     for v = existingVecs : (numVecs - 1)
         if v > 1
-            vqIdx = knnsearch(codebook(:, 1:v)', dataset');
         else
-            vqIdx = ones(size(dataset, 2), 1);
+            vqIdx = VQEncode(dataset, codebook(:, 1:v));
+            vqIdx = ones(1, size(dataset, 2));
         end
 
         % We perform two-step quantization: first, split the code
@@ -64,25 +113,20 @@ function [codebook, indices] = GenVQDict(dataset, numVecs, codebook)
         % Then, uniformize the codebook by iterating on the newly-found
         %  vectors until the codebook stabilizes (which means, vectors
         %  won't switch indexes anymore and are tightly clustered).
-        
-        
-        % TODO: replace `knnsearch` for my own variant
-        % TODO: benchmark `knnserach` against mine
-        
         while vecChanged
             vecChanged = false;
-            vqIdx = knnsearch(codebook(:, 1:(v + 1))', dataset');
+            vqIdx = EncodeVQ(dataset, codebook(:, 1:(v + 1)));
 
             for x = 1:(v + 1)
                 codebook(:, x) = mean(dataset(:, vqIdx == x), 2);
             end
             
             if any(isnan(codebook(:)))
-                throw(MException('TrainVQ:NaNCodebook',...
+                throw(MException('GenVQDict:NaNCodebook',...
                     'Error! Dictionary has NaN entries.'));
             end
 
-            vq2Idx = knnsearch(codebook(:, 1 : (v + 1))', dataset');
+            vq2Idx = VQEncode(dataset, codebook(:, 1 : (v + 1)));
             if any(vq2Idx ~= vqIdx)
                 vecChanged = true;
             end
