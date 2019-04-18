@@ -1,4 +1,4 @@
-function [codebook, indices] = GenVQDict(dataset, numVecs, codebook, useGPU)
+function [codebook, vqIdx] = GenVQDict(dataset, numVecs, codebook, useGPU)
 %GENVQDICT Generates a VQ Codebook using the MVS algorithm
 %   This function generates a near-optimal VQ codebook given the desired
 %     number of entries. It also accepts partially calculated codebooks,
@@ -32,6 +32,8 @@ function [codebook, indices] = GenVQDict(dataset, numVecs, codebook, useGPU)
         useGPU = false;
     end
 
+    segmentLength = size(dataset, 1);
+    
     if ~exist('codebook', 'var') || isempty(codebook)
         codebook = zeros(segmentLength, numVecs);
         codebook(:, 1) = mean(dataset, 2);
@@ -41,19 +43,17 @@ function [codebook, indices] = GenVQDict(dataset, numVecs, codebook, useGPU)
     end
 
 %% Size checking
-    assert(len(size(dataset)) == 2, sprintf( ...
-        'Input data must be a 2D variable; is %dD instead', ...
-        len(size(input))));
-    
-    segmentLength = size(dataset, 1);
+    assert(length(size(dataset)) == 2, sprintf( ...
+        'Dataset must be a 2D variable; is %dD instead', ...
+        length(size(dataset))));
 
-    assert(len(size(codebook)) == 2, sprintf( ...
+    assert(length(size(codebook)) == 2, sprintf( ...
         'Codebook must be a 2D variable; is %dD instead', ...
-        len(size(codebook))));
+        length(size(codebook))));
     
     assert(size(codebook, 1) == size(dataset, 1), sprintf( ...
-        "Input (%d) and codebook (%d) don't have same number of rows", ...
-        size(input, 1), size(codebook, 1)));
+        "Dataset (%d) and codebook (%d) don't have same number of rows", ...
+        size(dataset, 1), size(codebook, 1)));
 
 %% Type Checking
     assert(isnumeric(dataset), sprintf( ...
@@ -86,8 +86,8 @@ function [codebook, indices] = GenVQDict(dataset, numVecs, codebook, useGPU)
 
     for v = existingVecs : (numVecs - 1)
         if v > 1
+            vqIdx = EncodeVQ(dataset, codebook(:, 1:v));
         else
-            vqIdx = VQEncode(dataset, codebook(:, 1:v));
             vqIdx = ones(1, size(dataset, 2));
         end
 
@@ -108,15 +108,16 @@ function [codebook, indices] = GenVQDict(dataset, numVecs, codebook, useGPU)
         codebook(:, mostFrequentVec) = oldVec + deviation;
         codebook(:, mostFrequentVec + 1) = oldVec - deviation;
 
+        vqIdx = EncodeVQ(dataset, codebook(:, 1 : (v + 1)));
         vecChanged = true;
 
         % Then, uniformize the codebook by iterating on the newly-found
         %  vectors until the codebook stabilizes (which means, vectors
         %  won't switch indexes anymore and are tightly clustered).
-        while vecChanged
+        iterLimit = 300;
+        iterations = 1;
+        while vecChanged && iterations < ceil((iterLimit / sqrt(v)))
             vecChanged = false;
-            vqIdx = EncodeVQ(dataset, codebook(:, 1:(v + 1)));
-
             for x = 1:(v + 1)
                 codebook(:, x) = mean(dataset(:, vqIdx == x), 2);
             end
@@ -126,10 +127,12 @@ function [codebook, indices] = GenVQDict(dataset, numVecs, codebook, useGPU)
                     'Error! Dictionary has NaN entries.'));
             end
 
-            vq2Idx = VQEncode(dataset, codebook(:, 1 : (v + 1)));
+            vq2Idx = EncodeVQ(dataset, codebook(:, 1 : (v + 1)));
             if any(vq2Idx ~= vqIdx)
                 vecChanged = true;
+                vqIdx = vq2Idx;
             end
+            iterations = iterations + 1;
         end
     end
 end
