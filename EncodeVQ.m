@@ -4,8 +4,8 @@ function indices = EncodeVQ(input, codebook, useGPU)
 %   This function encodes data into the given codebook under a
 %     least-squares criteria; that is, it finds the codebook entry that is
 %     closest to a given data point. It also runs fine on Nvidia GPUs using
-%     gpuArray() input data, and that makes the algorithm significantly
-%     faster.
+%     gpuArray() input data, which makes the algorithm significantly faster.
+%     
 %
 %   Instead of calculating the distance directly against every sample using
 %     the minus operator (because  MatLAB is stupid enough to try allocating
@@ -13,11 +13,11 @@ function indices = EncodeVQ(input, codebook, useGPU)
 %     infeasible for any worthwhile dataset), we instead calculate the
 %     distance of all input samples for each codebook entry individually,
 %     and then at the end find the one whose distance is smallest. 
-%   This also works much better for GPUs, and will be faster as long as
-%     the number of input samples is much larger than codebook entries,
-%      and the GPU has enough memory to hold two copies of the dataset.
-%   If not, we keep trying by using a bissecting sort until we can find
-%     a subset of data that fits the GPU and proceed from there on.
+%   This also works much better for GPUs, and will be faster as long as the
+%     number of input samples is much larger than codebook entries, and the
+%     GPU has enough memory to hold two copies of the dataset.
+%   If not, we keep trying by using a bissecting sort until we can find a
+%     subset of data that fits the GPU and proceed from there on.
 %   
 %
 %   Input Arguments:
@@ -48,13 +48,13 @@ function indices = EncodeVQ(input, codebook, useGPU)
     assert(isscalar(useGPU), "useGPU must be scalar");
     
 %% Size checking
-    assert(len(size(input)) == 2, sprintf( ...
+    assert(length(size(input)) == 2, sprintf( ...
         'Input data must be a 2D variable; is %dD instead', ...
-        len(size(input))));
+        length(size(input))));
     
-    assert(len(size(codebook)) == 2, sprintf( ...
+    assert(length(size(codebook)) == 2, sprintf( ...
         'Codebook must be a 2D variable; is %dD instead', ...
-        len(size(codebook))));
+        length(size(codebook))));
     
     assert(size(codebook, 1) == size(input, 1), sprintf( ...
         "Input (%d) and codebook (%d) don't have same number of rows", ...
@@ -66,23 +66,48 @@ function indices = EncodeVQ(input, codebook, useGPU)
             gpuDevice();
         catch
             useGPU = false;
-            assert(0, "Your computer or GPU doesn't support CUDA");
+            warning("Your computer or GPU doesn't support CUDA. Falling back to software mode.");
+        end
+    end
+    
+    if useGPU
+        if ~existsOnGPU(input)
+            input = gpuArray(input);
+        end
+        if ~existsOnGPU(codebook)
+            codebook = gpuArray(codebook);
         end
     end
 
     
 %% Function Body
-    if useGpu
+    if useGPU
         distances = gpuArray(single(zeros(...
             size(codebook, 2), size(input, 2))));
     else
         distances = zeros(size(codebook, 2), size(input, 2));
     end
+
     for x = 1 : size(codebook, 2)
-        distanceToVec = input - codebook(:, x);
-        distances(x, :) = sum(distanceToVec.^2); % If you want to change
-                                                 %  metric, like inf or
-    end                                          %  0 or 1-norm, do it
-    [~, indices] = min(distances);               %  here!
+        couldCalculate = false;
+        subDivisions = 1;
+        while couldCalculate ~= true
+            try
+                delta = ceil(size(input, 2) / subDivisions);
+                offset = 1;
+                for divisions = 1 : subDivisions
+                    range = offset : min(offset + delta, size(input, 2));
+                    distanceToVec = input(:, range) - codebook(:, x);
+                    % If you want to change the metric, like inf or 0 or
+                    %  1-norm instead of 2-norm, do it here!
+                    distances(x, range) = sum(distanceToVec.^2);
+                end
+                couldCalculate = true;
+            catch
+                subDivisions = subDivisions + 1;
+            end
+        end
+    end
+    [~, indices] = min(distances);
 end
 
