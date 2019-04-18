@@ -28,9 +28,28 @@ blocks = im2col(img(:, :, 1), [blockLen blockLen], 'distinct');
 blocks = [blocks; im2col(img(:, :, 2), [blockLen blockLen], 'distinct')];
 blocks = [blocks; im2col(img(:, :, 3), [blockLen blockLen], 'distinct')];
 
-%% Create VQ Dictionary and Indices
+%% Create/Encode VQ Dictionary and Indices
 [dict, idx] = GenVQDictMEX(blocks, 256);
 
 %% Store Dictionary and Indices to disk
+save('DictMushroom.mat');
 
+%% Later, load Dictionary and Indices from disk
+load('DictMushroom.mat');
 
+%% Then, decode the compressed VQ blocks
+newBlocks = DecodeVQ(dict, idx);
+
+%% And separate into color channels
+newImgR = col2im(newBlocks(1:4, :), ...
+    [blockLen, blockLen], [640 960], 'distinct');
+
+newImgG = col2im(newBlocks(5:8, :), ...
+    [blockLen, blockLen], [640 960], 'distinct');
+
+newImgB = col2im(newBlocks(9:12, :), ...
+    [blockLen, blockLen], [640 960], 'distinct');
+
+%% Finally, recompose the image
+newImg = cat(3, newImgR, newImgG, newImgB);
+imshow(newImg);
