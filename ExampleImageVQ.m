@@ -42,14 +42,14 @@ newBlocks = DecodeVQ(dict, idx);
 
 %% And separate into color channels
 newImgR = col2im(newBlocks(1:4, :), ...
-    [blockLen, blockLen], [640 960], 'distinct');
+    [blockLen, blockLen], [360 540], 'distinct');
 
 newImgG = col2im(newBlocks(5:8, :), ...
-    [blockLen, blockLen], [640 960], 'distinct');
+    [blockLen, blockLen], [360 540], 'distinct');
 
 newImgB = col2im(newBlocks(9:12, :), ...
-    [blockLen, blockLen], [640 960], 'distinct');
+    [blockLen, blockLen], [360 540], 'distinct');
 
-%% Finally, recompose the image
+%% Finally, plot results
 newImg = cat(3, newImgR, newImgG, newImgB);
-imshow(newImg);
+PlotImageVQResults(img, newImg, idx);
