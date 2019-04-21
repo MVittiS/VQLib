@@ -35,7 +35,7 @@ function [codebook, vqIdx] = GenVQDict_unsafe(dataset, numVecs)
 
     for v = 1 : (numVecs - 1)
         if v > 1
-            vqIdx = EncodeVQMEX(dataset, codebook(:, 1:v));
+            vqIdx = EncodeVQ_unsafe(dataset, codebook(:, 1:v));
         else
             vqIdx = ones(1, size(dataset, 2));
         end
@@ -58,12 +58,14 @@ function [codebook, vqIdx] = GenVQDict_unsafe(dataset, numVecs)
         codebook(:, mostFrequentVec) = oldVec + deviation;
         codebook(:, mostFrequentVec + 1) = oldVec - deviation;
 
-        vqIdx = EncodeVQMEX(dataset, codebook(:, 1 : (v + 1)));
+        vqIdx = EncodeVQ_unsafe(dataset, codebook(:, 1 : (v + 1)));
         vecChanged = true;
 
         % Then, uniformize the codebook by iterating on the newly-found
         %  vectors until the codebook stabilizes (which means, vectors
-        %  won't switch indexes anymore and are tightly clustered).
+        %  won't switch indexes anymore and are tightly clustered). Or,
+        %  iteration limit is reached, just because we don't have infinite
+        %  computer time to waste.
         iterLimit = 300;
         iterations = 1;
         while vecChanged && iterations < ceil((iterLimit / sqrt(v)))
@@ -72,7 +74,7 @@ function [codebook, vqIdx] = GenVQDict_unsafe(dataset, numVecs)
                 codebook(:, x) = mean(dataset(:, vqIdx == x), 2);
             end
 
-            vq2Idx = EncodeVQMEX(dataset, codebook(:, 1 : (v + 1)));
+            vq2Idx = EncodeVQ_unsafe(dataset, codebook(:, 1 : (v + 1)));
             if any(vq2Idx ~= vqIdx)
                 vecChanged = true;
                 vqIdx = vq2Idx;
