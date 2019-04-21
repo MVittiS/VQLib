@@ -76,8 +76,8 @@ function [codebook, vqIdx] = GenVQDict(dataset, numVecs, codebook, useGPU)
         try
             gpuDevice();
         catch
-            throw(MException('TrainVQ:NaNCodebook',...
-                    'Error! Dictionary has NaN entries.'));
+            throw(MException('GenVQDict:NoGPU',...
+                    'Error! Couldnt initialize your GPU.'));
         end
     end
 
