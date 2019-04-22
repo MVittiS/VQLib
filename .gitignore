@@ -3,5 +3,7 @@
 DictMushroom.mat
 DictMushroomInterlaced.mat
 *.m~
+*.prj
+*.mex*
 codegen/
 
