@@ -14,7 +14,7 @@
 %   In the end, this produces an image with an approximately 12:1 fixed
 %    compression ratio, and very similar charcteristics to the texture
 %    format used by Videologic's PowerVR2 GPU, used in the Sega Dreamcast
-%    videogames console. Block artifacts are clearly visible, but having
+%    videogame console. Block artifacts are clearly visible, but having
 %    such a nice fixed compression ratio and decoding speed is a good
 %    demonstration of some of the capabilities of VQ.
 
