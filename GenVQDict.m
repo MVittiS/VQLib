@@ -7,7 +7,7 @@ function [codebook, vqIdx] = GenVQDict(dataset, numVecs, codebook, useGPU)
 %
 %   It also runs fine on Nvidia GPUs using gpuArray(), providing a
 %     significant speed boost over regular CPUs, though vectorized this
-%     function may be - typical CPU utilization is around 300% on Unix
+%     function may be - typical CPU utilization is around 160% on Unix
 %     systems.
 %
 %
@@ -86,7 +86,7 @@ function [codebook, vqIdx] = GenVQDict(dataset, numVecs, codebook, useGPU)
 
     for v = existingVecs : (numVecs - 1)
         if v > 1
-            vqIdx = EncodeVQ(dataset, codebook(:, 1:v));
+            vqIdx = EncodeVQ(dataset, codebook(:, 1:v), useGPU);
         else
             vqIdx = ones(1, size(dataset, 2));
         end
@@ -108,7 +108,7 @@ function [codebook, vqIdx] = GenVQDict(dataset, numVecs, codebook, useGPU)
         codebook(:, mostFrequentVec) = oldVec + deviation;
         codebook(:, mostFrequentVec + 1) = oldVec - deviation;
 
-        vqIdx = EncodeVQ(dataset, codebook(:, 1 : (v + 1)));
+        vqIdx = EncodeVQ(dataset, codebook(:, 1 : (v + 1)), useGPU);
         vecChanged = true;
 
         % Then, uniformize the codebook by iterating on the newly-found
@@ -127,7 +127,7 @@ function [codebook, vqIdx] = GenVQDict(dataset, numVecs, codebook, useGPU)
                     'Error! Dictionary has NaN entries.'));
             end
 
-            vq2Idx = EncodeVQ(dataset, codebook(:, 1 : (v + 1)));
+            vq2Idx = EncodeVQ(dataset, codebook(:, 1 : (v + 1)), useGPU);
             if any(vq2Idx ~= vqIdx)
                 vecChanged = true;
                 vqIdx = vq2Idx;

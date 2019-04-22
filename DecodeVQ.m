@@ -1,7 +1,8 @@
 function output = DecodeVQ(codebook, indices)
 %DECODEVQ Reconstructs a VQ-compressed signal, given codebook and indices
 %   Since doing an index expansion (a.k.a. VQ decompression) is trivial
-%     in MatLAB, this function is just provided for completeness' sake.
+%     in MatLAB, this function is just provided for completeness' sake and
+%     type checking.
 %
 %
 %   Input Arguments:
@@ -21,7 +22,6 @@ function output = DecodeVQ(codebook, indices)
     assert(isnumeric(indices), sprintf( ...
         'Codebook is not a numeric type; is %s instead', ...
         class(codebook)));
-
 
 %% Function Body
     output = codebook(:, indices);
