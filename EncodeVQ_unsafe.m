@@ -21,13 +21,13 @@ function indices = EncodeVQ_unsafe(input, codebook)
 %     Organization: 1D samples in every column, dimensions in every row
 %
 %   'codebook' - Codebook to calculate the indices from.
-%     Type: 2D floating point matrix (from single to gpuArray:double)
+%     Type: 2D/matrix, floating point (from single to gpuArray:double)
 %     Organization: 1D entries in every column, dimensions in every row
 %
 %   Output Arguments:
 %
 %   'indices' - Array of indices mapping samples to codebook entries.
-%     Type: 1D/scalar integer array
+%     Type: 1D/vector, integer
 %     Organization: one index per input sample/column
 
     

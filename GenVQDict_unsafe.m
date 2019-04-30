@@ -15,14 +15,14 @@ function [codebook, vqIdx] = GenVQDict_unsafe(dataset, numVecs)
 %     Organization: 1D samples in every column, dimensions in every row
 %
 %   'numVecs' - Amount of entries in your codebook.
-%     Type: scalar, integer or integer-convertible
+%     Type: 0D/scalar, integer or integer-convertible
 %
 %   'codebook' - Optional, partial codebook to continue from.
-%     Type: 2D floating point matrix (from single to gpuArray:double)
+%     Type: 2D/matrix, floating point (from single to gpuArray:double)
 %     Organization: flat entries in every column, dimensions in every row
 %
 %   'useGPU' - Optional, flag to indicate GPU (CUDA) acceleration.
-%     Type: scalar, logical
+%     Type: 0D/scalar, logical
 
 %% Variable Setup
     segmentLength = size(dataset, 1);
