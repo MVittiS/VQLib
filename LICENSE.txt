@@ -1,7 +1,7 @@
-== The VQLib License ==
+== The FastVQLib License ==
 
 - This software is provided as-is, with no warranties implied whatsoever.
-- The author shall not be responsible for any kind(s) of damage incurred from the use of any parts of, or the software.
+- The author is not be responsible for any kind(s) of damage incurred from the use of any parts of, or the software itself.
 - This software and its parts may be freely used for non-commercial work. This applies to:
   - Source code
   - Executables made from the source code or parts of it, including but not limited to:
@@ -12,5 +12,5 @@
 - Any violation of the terms stated above grants the author of this software permission to prosecute the infringing parts to any extent of the law under the German legal system.
 
 
-Contact information:
-github.com/mvittis
+= Contact information =
+  github.com/mvittis
