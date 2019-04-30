@@ -29,7 +29,7 @@ blocks = [blocks; im2col(img(:, :, 2), [blockLen blockLen], 'distinct')];
 blocks = [blocks; im2col(img(:, :, 3), [blockLen blockLen], 'distinct')];
 
 %% Create/Encode VQ Dictionary and Indices
-[dict, idx] = GenVQDictMEX(blocks, 256);
+[dict, idx] = GenVQDict(blocks, 256);
 
 %% Store Dictionary and Indices to disk
 save('DictMushroom.mat');
@@ -53,3 +53,4 @@ newImgB = col2im(newBlocks(9:12, :), ...
 %% Finally, plot results
 newImg = cat(3, newImgR, newImgG, newImgB);
 PlotImageVQResults(img, newImg, idx);
+
