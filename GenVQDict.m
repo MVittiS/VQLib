@@ -18,14 +18,14 @@ function [codebook, vqIdx] = GenVQDict(dataset, numVecs, codebook, useGPU)
 %     Organization: 1D samples in every column, dimensions in every row
 %
 %   'numVecs' - Amount of entries in your codebook.
-%     Type: scalar, integer or integer-convertible
+%     Type: 0D/scalar, integer or integer-convertible
 %
 %   'codebook' - Optional, partial codebook to continue from.
-%     Type: 2D floating point matrix (from single to gpuArray:double)
+%     Type: 2D/matrix, floating point (from single to gpuArray:double)
 %     Organization: flat entries in every column, dimensions in every row
 %
 %   'useGPU' - Optional, flag to indicate GPU (CUDA) acceleration.
-%     Type: scalar, logical
+%     Type: 0D/scalar, logical
 
 %% Optional arguments checking
     if ~exist('useGPU', 'var')
@@ -83,9 +83,8 @@ function [codebook, vqIdx] = GenVQDict(dataset, numVecs, codebook, useGPU)
 
 
 %% Main Loop
-
     for v = existingVecs : (numVecs - 1)
-        if v > 1
+        if v > 1 && calculated == false
             vqIdx = EncodeVQ(dataset, codebook(:, 1:v), useGPU);
         else
             vqIdx = ones(1, size(dataset, 2));
@@ -128,6 +127,7 @@ function [codebook, vqIdx] = GenVQDict(dataset, numVecs, codebook, useGPU)
             end
 
             vq2Idx = EncodeVQ(dataset, codebook(:, 1 : (v + 1)), useGPU);
+            calculated = true;
             if any(vq2Idx ~= vqIdx)
                 vecChanged = true;
                 vqIdx = vq2Idx;
