@@ -48,13 +48,13 @@ function indices = EncodeVQ(input, codebook, useGPU)
     assert(isscalar(useGPU), "useGPU must be scalar");
     
 %% Size checking
-    assert(length(size(input)) == 2, sprintf( ...
+    assert(numel(size(input)) == 2, sprintf( ...
         'Input data must be a 2D variable; is %dD instead', ...
-        length(size(input))));
+        numel(size(input))));
     
-    assert(length(size(codebook)) == 2, sprintf( ...
+    assert(numel(size(codebook)) == 2, sprintf( ...
         'Codebook must be a 2D variable; is %dD instead', ...
-        length(size(codebook))));
+        numel(size(codebook))));
     
     assert(size(codebook, 1) == size(input, 1), sprintf( ...
         "Input (%d) and codebook (%d) don't have same number of rows", ...
@@ -101,6 +101,8 @@ function indices = EncodeVQ(input, codebook, useGPU)
                     % If you want to change the metric, like inf or 0 or
                     %  1-norm instead of 2-norm, do it here!
                     distances(x, range) = sum(distanceToVec.^2);
+
+                    offset = offset + delta + 1;
                 end
                 couldCalculate = true;
             catch
