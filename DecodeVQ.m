@@ -25,5 +25,4 @@ function output = DecodeVQ(codebook, indices)
 
 %% Function Body
     output = codebook(:, indices);
-    output = output(:);
 end
