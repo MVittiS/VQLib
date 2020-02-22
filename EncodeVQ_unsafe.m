@@ -5,7 +5,9 @@ function indices = EncodeVQ_unsafe(input, codebook)
 %     least-squares criteria; that is, it finds the codebook entry that is
 %     closest to a given data point. 
 %
-%   This is the unsafe variant that does not support bissection.
+%   This is the unsafe variant that does not support bissection, and
+%     doesn't do type checking. It may be potentially faster, and better
+%     for use with MatLAB coder.
 %
 %   Instead of calculating the distance directly against every sample using
 %     the minus operator (because  MatLAB is stupid enough to try to

@@ -2,25 +2,26 @@
 %    interlacing of the input data in the spatial domain prior to
 %    quantization, to demonstrate the effect data layout has on VQ
 %    compression.
-%    
+%
 %   We load the same example image (Mushroom.jpeg), but this time
-%   rearranging the pixels into 4 sub-images, one with each pixel from a
-%   2x2 block (upper-left to lower-right) before encoding this new image
-%   with the same method as before. This can be considered a crude form of
-%   a hybrid VQ-wavelet approach for compression, since gradients should
-%   look better than the straightforward approach.
-%    
+%    rearranging the pixels into 4 sub-images, one with each pixel from a
+%    2x2 block (upper-left to lower-right) before encoding this new image
+%    with the same method as before. This can be considered a crude form of
+%    a hybrid VQ-wavelet approach for compression, since gradients look
+%    better than the straightforward approach, to the cost of an overall
+%    noisier output image.
+%
 
 %% Load and convert image type
 img = single(imread('Mushroom.jpg')) / 255.0;
 %imshow(img);
 
 %% Convert the image into 4 sub-images (or, interlace the image)
-imgUL = img(1:2:end, 1:2:end, :);
-imgUR = img(1:2:end, 2:2:end, :);
-imgDL = img(2:2:end, 1:2:end, :);
-imgDR = img(2:2:end, 2:2:end, :);
-imgBlk = [imgUL imgUR; imgDL imgDR];
+imgUpLeft = img(1:2:end, 1:2:end, :);
+imgUpRight = img(1:2:end, 2:2:end, :);
+imgDownLeft = img(2:2:end, 1:2:end, :);
+imgDownRight = img(2:2:end, 2:2:end, :);
+imgBlk = [imgUpLeft imgUpRight; imgDownLeft imgDownRight];
 imshow(imgBlk);
 
 %% Convert image into blocks
@@ -54,15 +55,15 @@ newImgB = col2im(newBlocks(9:12, :), ...
 newImg = cat(3, newImgR, newImgG, newImgB);
 
 %% Second to last, revert the image interlacing
-newImgUL = newImg(1:end/2, 1:end/2, :);
-newImgUR = newImg(1:end/2, end/2 + 1 : end, :);
-newImgDL = newImg(end/2 + 1 : end, 1:end/2, :);
-newImgDR = newImg(end/2 + 1 : end, end/2 + 1 : end, :);
+newImgUpLeft = newImg(1:end/2, 1:end/2, :);
+newImgUpRight = newImg(1:end/2, end/2 + 1 : end, :);
+newImgDownLeft = newImg(end/2 + 1 : end, 1:end/2, :);
+newImgDownRight = newImg(end/2 + 1 : end, end/2 + 1 : end, :);
 
-newImg(1:2:end, 1:2:end, :) = newImgUL;
-newImg(1:2:end, 2:2:end, :) = newImgUR;
-newImg(2:2:end, 1:2:end, :) = newImgDL;
-newImg(2:2:end, 2:2:end, :) = newImgDR;
+newImg(1:2:end, 1:2:end, :) = newImgUpLeft;
+newImg(1:2:end, 2:2:end, :) = newImgUpRight;
+newImg(2:2:end, 1:2:end, :) = newImgDownLeft;
+newImg(2:2:end, 2:2:end, :) = newImgDownRight;
 
 %% Finally, plot results
 PlotImageVQResults(img, newImg, idx);

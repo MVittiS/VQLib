@@ -5,10 +5,9 @@ function [codebook, vqIdx] = GenVQDict(dataset, numVecs, codebook, useGPU)
 %     allowing for continuation if the codebook generation is too slow or
 %     requires a large dataset.
 %
-%   It also runs fine on Nvidia GPUs using gpuArray(), providing a
-%     significant speed boost over regular CPUs, though vectorized this
-%     function may be - typical CPU utilization is around 160% on Unix
-%     systems.
+%   It is also optimized for GPUs using gpuArray(), providing a significant
+%     speed boost over regular CPUs, though vectorized this function may be
+%     - typical CPU utilization is around 160% on Unix systems.
 %
 %
 %   Input Arguments:

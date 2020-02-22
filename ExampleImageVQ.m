@@ -4,13 +4,12 @@
 %    space-saving format, and then loading and decoding them again to
 %    compare against the original data.
 %    
-%   Here we load the provided example image (Mushroom.jpeg), partition
+%   Here we load the provided example image (Mushroom.jpg), partition
 %    it in 2x2 blocks, flatten said blocks to 4x1 vectors, make our
 %    dictionary, store the dictionary and indices as 8bpp values, and
 %    finally undo the process to compare the image against the original,
-%    in terms of error. We then re-generate the dictionary, but weighting
-%    the color values acording to the ITU-T B.709 spec for luminance.
-%    
+%    in terms of error.
+%
 %   In the end, this produces an image with an approximately 12:1 fixed
 %    compression ratio, and very similar charcteristics to the texture
 %    format used by Videologic's PowerVR2 GPU, used in the Sega Dreamcast
