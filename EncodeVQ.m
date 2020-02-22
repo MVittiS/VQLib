@@ -88,9 +88,10 @@ function indices = EncodeVQ(input, codebook, useGPU)
         distances = zeros(size(codebook, 2), size(input, 2));
     end
 
+    subDivisions = 1;
+
     for x = 1 : size(codebook, 2)
         couldCalculate = false;
-        subDivisions = 1;
         while couldCalculate ~= true
             try
                 delta = ceil(size(input, 2) / subDivisions);
@@ -98,6 +99,7 @@ function indices = EncodeVQ(input, codebook, useGPU)
                 for divisions = 1 : subDivisions
                     range = offset : min(offset + delta, size(input, 2));
                     distanceToVec = input(:, range) - codebook(:, x);
+
                     % If you want to change the metric, like inf or 0 or
                     %  1-norm instead of 2-norm, do it here!
                     distances(x, range) = sum(distanceToVec.^2);
