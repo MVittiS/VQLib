@@ -82,6 +82,9 @@ function [codebook, vqIdx] = GenVQDict(dataset, numVecs, codebook, useGPU)
 
 
 %% Main Loop
+    dither = 0.01 * [1 1 1 -1 -1 -1 -1 -1 -1 1 1 1]';
+    datasetDithered = dataset + dither;
+
     for v = existingVecs : (numVecs - 1)
         if v > 1 && calculated == false
             vqIdx = EncodeVQ(dataset, codebook(:, 1:v), useGPU);
@@ -125,7 +128,12 @@ function [codebook, vqIdx] = GenVQDict(dataset, numVecs, codebook, useGPU)
                     'Error! Dictionary has NaN entries.'));
             end
 
-            vq2Idx = EncodeVQ(dataset, codebook(:, 1 : (v + 1)), useGPU);
+            if mod(iterations, 2)
+                vq2Idx = EncodeVQ(dataset, codebook(:, 1 : (v + 1)), useGPU);
+            else
+                vq2Idx = EncodeVQ(datasetDithered ...
+                    , codebook(:, 1 : (v + 1)), useGPU);
+            end
             calculated = true;
             if any(vq2Idx ~= vqIdx)
                 vecChanged = true;
