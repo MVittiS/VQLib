@@ -16,5 +16,10 @@ By using this software, source code, or any parts of it, you agree to the follow
 - Any violation of the terms stated above grants the author of this software permission to prosecute the infringing parts to any extent of the law under the German legal system.
 
 
+= Image Credits =
+
+"Mushroom.jpg" was photographed and created by Matheus Vitti Santos, and is under Creative Commons Attribution-NonCommercial-ShareAlike (CC BY-NC-SA) 4.0 License.
+
+
 = Contact information =
   github.com/mvittis
