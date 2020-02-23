@@ -1,7 +1,6 @@
 .DS_Store
 .vscode/
-DictMushroom.mat
-DictMushroomInterlaced.mat
+*.mat
 *.m~
 *.prj
 *.mex*
