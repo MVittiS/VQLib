@@ -32,13 +32,16 @@ function [codebook, vqIdx] = GenVQDict(dataset, numVecs, codebook, useGPU)
     end
 
     segmentLength = size(dataset, 1);
-    
+
     if ~exist('codebook', 'var') || isempty(codebook)
-        codebook = zeros(segmentLength, numVecs);
+        codebook = single(zeros(segmentLength, numVecs));
+        if useGPU
+            codebook = gpuArray(codebook);
+        end
         codebook(:, 1) = mean(dataset, 2);
         existingVecs = 1;
     else
-        existingVecs = find(any(codebook), 1, 'last') + 1;
+        existingVecs = find(any(codebook), 1, 'last');
     end
 
 %% Size checking
@@ -49,7 +52,7 @@ function [codebook, vqIdx] = GenVQDict(dataset, numVecs, codebook, useGPU)
     assert(length(size(codebook)) == 2, sprintf( ...
         'Codebook must be a 2D variable; is %dD instead', ...
         length(size(codebook))));
-    
+
     assert(size(codebook, 1) == size(dataset, 1), sprintf( ...
         "Dataset (%d) and codebook (%d) don't have same number of rows", ...
         size(dataset, 1), size(codebook, 1)));
@@ -65,11 +68,11 @@ function [codebook, vqIdx] = GenVQDict(dataset, numVecs, codebook, useGPU)
 
     assert(isscalar(numVecs), sprintf( ...
         'numVecs is not a scalar'));
-    
+
     assert(isnumeric(codebook), sprintf( ...
         'Codebook is not a numeric type; is %s instead', ...
         class(codebook)));
-    
+
 %% Feature Checking
     if (useGPU)
         try
@@ -82,11 +85,8 @@ function [codebook, vqIdx] = GenVQDict(dataset, numVecs, codebook, useGPU)
 
 
 %% Main Loop
-    dither = 0.01 * [1 1 1 -1 -1 -1 -1 -1 -1 1 1 1]';
-    datasetDithered = dataset + dither;
-
     for v = existingVecs : (numVecs - 1)
-        if v > 1 && calculated == false
+        if v > 1
             vqIdx = EncodeVQ(dataset, codebook(:, 1:v), useGPU);
         else
             vqIdx = ones(1, size(dataset, 2));
@@ -122,19 +122,14 @@ function [codebook, vqIdx] = GenVQDict(dataset, numVecs, codebook, useGPU)
             for x = 1:(v + 1)
                 codebook(:, x) = mean(dataset(:, vqIdx == x), 2);
             end
-            
+
             if any(isnan(codebook(:)))
                 throw(MException('GenVQDict:NaNCodebook',...
                     'Error! Dictionary has NaN entries.'));
             end
 
-            if mod(iterations, 2)
-                vq2Idx = EncodeVQ(dataset, codebook(:, 1 : (v + 1)), useGPU);
-            else
-                vq2Idx = EncodeVQ(datasetDithered ...
-                    , codebook(:, 1 : (v + 1)), useGPU);
-            end
-            calculated = true;
+            vq2Idx = EncodeVQ(dataset, codebook(:, 1 : (v + 1)), useGPU);
+
             if any(vq2Idx ~= vqIdx)
                 vecChanged = true;
                 vqIdx = vq2Idx;
