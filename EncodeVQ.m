@@ -66,16 +66,18 @@ function indices = EncodeVQ(input, codebook, useGPU)
             gpuDevice();
         catch
             useGPU = false;
-            warning("Your computer or GPU doesn't support CUDA. Falling back to software mode.");
+            warning("Couldn't initialize gpu. Falling back to software mode.");
         end
     end
     
     if useGPU
         if ~existsOnGPU(input)
             input = gpuArray(input);
+            warning("Input to EncodeVQ wasn't in GPU memory. Performing copy.");
         end
         if ~existsOnGPU(codebook)
             codebook = gpuArray(codebook);
+            warning("Codebook to EncodeVQ wasn't in GPU memory. Performing copy.");
         end
     end
 
@@ -113,5 +115,6 @@ function indices = EncodeVQ(input, codebook, useGPU)
         end
     end
     [~, indices] = min(distances);
+    indices = int32(indices);
 end
 
