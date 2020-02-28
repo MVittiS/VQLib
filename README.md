@@ -2,7 +2,7 @@
 
 **VQToolkit** is a series of open-source MatLAB implementations of the Vector Quantization algorithms, that are GPU-accelerated, fault-tolerant, and basically free for non-commercial use. C++ implementations may follow later on to allow them to be used elsewhere.
 
-See a usage example [here](ExampleVQ.m).
+See a usage example [here](ExampleImageVQ.m).
 
 
 ## Modes of Operation
