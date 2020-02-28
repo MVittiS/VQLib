@@ -3,7 +3,7 @@
 %    generating a dictionary, storing said dictionary and indices in some
 %    space-saving format, and then loading and decoding them again to
 %    compare against the original data.
-%    
+%
 %   Here we load the provided example image (Mushroom.jpg), partition
 %    it in 2x2 blocks, flatten said blocks to 4x1 vectors, make our
 %    dictionary, store the dictionary and indices as 8bpp values, and
