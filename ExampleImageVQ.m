@@ -51,5 +51,6 @@ newImgB = col2im(newBlocks((2*(blockLen^2) + 1):(3*(blockLen^2)), :), ...
 
 %% Finally, plot results
 newImg = cat(3, newImgR, newImgG, newImgB);
-PlotImageVQResults(img, newImg, idx);
+PlotImageVQResults(img, newImg, idx, blockLen);
+print("Mushroom Compressed Fast.png", '-dpng -r150')
 
