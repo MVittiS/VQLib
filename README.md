@@ -4,7 +4,7 @@
 
 See a usage example [here](ExampleImageVQ.m).
 
-![Diagram with Execution of ExampleImageVQ](Mushroom Compressed Fast.png)
+![Diagram with Execution of ExampleImageVQ](MushroomCompressedFast.png)
 
 ## Modes of Operation
 
