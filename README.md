@@ -4,6 +4,7 @@
 
 See a usage example [here](ExampleImageVQ.m).
 
+![Diagram with Execution of ExampleImageVQ](Mushroom Compressed Fast.png)
 
 ## Modes of Operation
 
