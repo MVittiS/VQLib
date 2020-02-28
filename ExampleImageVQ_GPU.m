@@ -22,10 +22,10 @@ blocks = single(blocks); % MatLAB *really* likes doubles,
 %[dict, idx] = GenVQDictFast(blocks, 256, true);
 
 %% Store Dictionary and Indices to disk
-save('DictMushroom.mat');
+save('DictMushroomGPU.mat');
 
 %% Later, load Dictionary and Indices from disk
-load('DictMushroom.mat');
+load('DictMushroomGPU.mat');
 
 %% Then, decode the compressed VQ blocks
 newBlocks = DecodeVQ(dict, idx);
@@ -33,13 +33,13 @@ newBlocks = gather(newBlocks); % <- because col2im() won't accept
                                %    gpuArray types :P
 
 %% And separate into color channels
-newImgR = col2im(newBlocks(1:4, :), ...
+newImgR = col2im(newBlocks(1:(blockLen^2), :), ...
     [blockLen, blockLen], [360 540], 'distinct');
 
-newImgG = col2im(newBlocks(5:8, :), ...
+newImgG = col2im(newBlocks((blockLen^2 + 1):(2*(blockLen^2)), :), ...
     [blockLen, blockLen], [360 540], 'distinct');
 
-newImgB = col2im(newBlocks(9:12, :), ...
+newImgB = col2im(newBlocks((2*(blockLen^2) + 1):(3*(blockLen^2)), :), ...
     [blockLen, blockLen], [360 540], 'distinct');
 
 %% Finally, plot results
