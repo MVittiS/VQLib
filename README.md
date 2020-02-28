@@ -9,22 +9,31 @@ See a usage example [here](ExampleVQ.m).
 
 ### Dictionary
 
-- *Accurate*, where the generated dictionary will be close to optimal at the cost of slow convergence time.
-- *Fast*, where dictionary generation is considerably faster at the cost of optimality.
+- *Accurate*, where the generated dictionary will be close to optimal at the cost of very slow convergence time. Dictionary is built up and converged one vector/codebook entry at a time.
+- *Fast*, where dictionary generation is considerably faster at the cost of optimality (basically, the dictionary is initialized with random vectors from the dataset and iterated from there, instead of "growing out" as the *accurate* variant does)
 
 ## Benchmarks
 
-CPU Intel 1: Core i7 7567U @ 3.5GHz, ~3.8GHz turbo
-CPU Intel 2: Core i5 3240M @ ???
-CPU ARM: Raspberry Pi 3B+ @ 1.2 GHz
-GPU: Nvidia GeForce 640M
+CPU Intel 1: Core i7 7567U (2c/4t) @ 3.5GHz, ~3.9GHz turbo
+CPU Intel 2: Core i5 3210M (2c/4t) @ 2.5GHz, ~2.9GHz turbo
+CPU ARM: Raspberry Pi 3B+ (4c/4t) @ 1.2 GHz
+GPU: Nvidia GeForce 640M (12c/384t) @ 500MHz, 2GB
 MatLAB Version: R2018a
-Octave Version: 4.2.0
 
-### MatLAB/Octave CPU only
+### Precise
 
-TODO: Put benchmark results in tables here
+Intel 1, MatLAB: 28m20s
+Intel 1, Octave 5.2.0 Homebrew: 15m34s
+Intel 2, MatLAB: 1h41m50s
+Intel 2, Octave 4.2.2 Ubuntu/WSL: 53m28s
+ARM, Octave 4.0.0 Raspbian: 7h35m57s
+GPU, MatLAB: 1h01m12s
 
-### MatLAB CPU + GPU
+### Fast
 
-TODO: Put benchmark results in tables here
+Intel 1, MatLAB: 6m03s
+Intel 1, Octave 5.2.0 Homebrew: 10m42s
+Intel 2, MatLAB: 12m56s
+Intel 2, Octave 4.2.2 Ubuntu/WSL: 7m43s
+ARM, Octave 4.0.0 Raspbian: 50m46s
+GPU, MatLAB: 8m28s
