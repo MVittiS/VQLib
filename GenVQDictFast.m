@@ -27,5 +27,5 @@ function [codebook, vqIdx] = GenVQDictFast(dataset, numVecs, useGPU)
 
     randomVecsFromCodebook = randi([1 size(dataset, 2)], 1, numVecs - 1);
     codebook = dataset(:, randomVecsFromCodebook);
-    [codebook, vqIdx] = GenVQDict(dataset, numVecs, codebook, useGPU);
+    [codebook, vqIdx] = GenVQDict(dataset, numVecs, codebook, useGPU, numVecs * numVecs);
 end
