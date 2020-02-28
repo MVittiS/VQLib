@@ -1,4 +1,4 @@
-function [codebook, vqIdx] = GenVQDict(dataset, numVecs, codebook, useGPU)
+function [codebook, vqIdx] = GenVQDict(dataset, numVecs, codebook, useGPU, iterLimit)
 %GENVQDICT Generates a VQ Codebook using the MVS algorithm
 %   This function generates a near-optimal VQ codebook given the desired
 %     number of entries. It also accepts partially calculated codebooks,
@@ -112,10 +112,15 @@ function [codebook, vqIdx] = GenVQDict(dataset, numVecs, codebook, useGPU)
         vqIdx = EncodeVQ(dataset, codebook(:, 1 : (v + 1)), useGPU);
         vecChanged = true;
 
+        if ~exist('iterLimit', 'var')
+            iterLimit = 300;
+        elseif iterLimit == 0
+            iterLimit = inf;
+        end
+        
         % Then, uniformize the codebook by iterating on the newly-found
         %  vectors until the codebook stabilizes (which means, vectors
         %  won't switch indexes anymore and are tightly clustered).
-        iterLimit = 300;
         iterations = 1;
         while vecChanged && iterations < ceil((iterLimit / sqrt(v)))
             vecChanged = false;
@@ -124,8 +129,18 @@ function [codebook, vqIdx] = GenVQDict(dataset, numVecs, codebook, useGPU)
             end
 
             if any(isnan(codebook(:)))
-                throw(MException('GenVQDict:NaNCodebook',...
-                    'Error! Dictionary has NaN entries.'));
+                numNaNs = sum(any(isnan(codebook)));
+                for k = 1 : numNaNs
+                    nanCol = find(any(isnan(codebook)), 1);
+                    if nanCol > 1
+                        codebook = [codebook(:, 1:(nanCol-1)) ...
+                                    dataset(:, randi(size(dataset, 2)))...
+                                    codebook(:, (nanCol+1):end)];
+                    else
+                        codebook = [dataset(:, randi(size(dataset, 2)))...
+                                    codebook(:, 2:end)];
+                    end
+                end
             end
 
             vq2Idx = EncodeVQ(dataset, codebook(:, 1 : (v + 1)), useGPU);
