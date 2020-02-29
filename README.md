@@ -5,13 +5,20 @@
 See a usage example [here](ExampleImageVQ.m).
 
 ![Diagram with Execution of ExampleImageVQ](MushroomCompressedFast.png)
+The example above compresses the image by building a dictionary of 256 2x2 tiles. We can calculate the compression ratio as follows:
+
+- Original image: 540 (width) x 360 (height) x 3 (bytes per pixel) ~= 569.5KiB
+- Compressed image
+  - VQ Indices: 540 x 360 x 1/4 (bytes per pixel) = 47.5 KiB
+  - Dictionary: 256 x 4 (2x2 pixels per block) * 3 (bytes per pixel) = 3KiB
+  - Total: 50.5 KiB -> 11.2:1 compression ratio compared to original bitmap.
+
+Not bad, considering the JPEG stored in this repository is about twice the size (though at much better image quality and compression times).
 
 ## Modes of Operation
 
-### Dictionary
-
 - *Accurate*, where the generated dictionary will be close to optimal at the cost of very slow convergence time. Dictionary is built up and converged one vector/codebook entry at a time.
-- *Fast*, where dictionary generation is considerably faster at the cost of optimality (basically, the dictionary is initialized with random vectors from the dataset and iterated from there, instead of "growing out" as the *accurate* variant does)
+- *Fast*, where dictionary generation is considerably faster at the cost of optimality. Basically, the dictionary is initialized with random vectors from the dataset and iterated from there, instead of "growing out" as the *accurate* variant does.
 
 ## Benchmarks
 
