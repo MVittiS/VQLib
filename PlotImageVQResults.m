@@ -1,4 +1,4 @@
-function PlotImageVQResults(originalImg, vqImg, idxs)
+function PlotImageVQResults(originalImg, vqImg, idxs, blockSize)
 %PLOTIMAGEVQRESULTS Plots data about a VQ-encoding result for images
 %   This function plots four images regarding the results of an image VQ
 %    compression operation:
@@ -22,7 +22,6 @@ function PlotImageVQResults(originalImg, vqImg, idxs)
     title('Difference/Error Image');
     
     subplot(2, 2, 4);
-    scalingFactor = round(sqrt(numel(originalImg) / (3 * numel(idxs))));
-    imagesc(reshape(idxs, [], size(originalImg, 2) / scalingFactor));
+    imagesc(reshape(idxs, [], size(originalImg, 2) / blockSize));
     title('VQ Indices');
 end

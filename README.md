@@ -2,8 +2,9 @@
 
 **VQToolkit** is a series of open-source MatLAB implementations of the Vector Quantization algorithms, that are GPU-accelerated, fault-tolerant, and basically free for non-commercial use. C++ implementations may follow later on to allow them to be used elsewhere.
 
-See a usage example [here](ExampleVQ.m).
+See a usage example [here](ExampleImageVQ.m).
 
+![Diagram with Execution of ExampleImageVQ](MushroomCompressedFast.png)
 
 ## Modes of Operation
 
@@ -14,26 +15,19 @@ See a usage example [here](ExampleVQ.m).
 
 ## Benchmarks
 
-CPU Intel 1: Core i7 7567U (2c/4t) @ 3.5GHz, ~3.9GHz turbo
-CPU Intel 2: Core i5 3210M (2c/4t) @ 2.5GHz, ~2.9GHz turbo
-CPU ARM: Raspberry Pi 3B+ (4c/4t) @ 1.2 GHz
-GPU: Nvidia GeForce 640M (12c/384t) @ 500MHz, 2GB
-MatLAB Version: R2018a
+- CPU Intel 1: Core i7 7567U (2c/4t) @ 3.5GHz, ~3.9GHz turbo
+- CPU Intel 2: Core i5 3210M (2c/4t) @ 2.5GHz, ~2.9GHz turbo
+- CPU ARM: Raspberry Pi 3B+ (4c/4t) @ 1.2 GHz
+- GPU: Nvidia GeForce 640M (12c/384t) @ 500MHz, 2GB
+- MatLAB Version: R2018a
 
-### Precise
+*Precise* refers to the execution of `ExampleImageVQ`, whereas *Fast* is the same, but calling `GenVQDictFast` inside instead.
 
-Intel 1, MatLAB: 28m20s
-Intel 1, Octave 5.2.0 Homebrew: 15m34s
-Intel 2, MatLAB: 1h41m50s
-Intel 2, Octave 4.2.2 Ubuntu/WSL: 53m28s
-ARM, Octave 4.0.0 Raspbian: 7h35m57s
-GPU, MatLAB: 1h01m12s
-
-### Fast
-
-Intel 1, MatLAB: 6m03s
-Intel 1, Octave 5.2.0 Homebrew: 10m42s
-Intel 2, MatLAB: 12m56s
-Intel 2, Octave 4.2.2 Ubuntu/WSL: 7m43s
-ARM, Octave 4.0.0 Raspbian: 50m46s
-GPU, MatLAB: 8m28s
+| Environment                      | Precise  |  Fast  |
+| -------------------------------- |---------:|-------:|
+| Intel 1, MatLAB                  |   28m20s |  6m03s |
+| Intel 1, Octave 5.2.0 Homebrew   |   15m34s | 10m42s |
+| Intel 2, MatLAB                  | 1h41m50s | 12m56s |
+| Intel 2, Octave 4.2.2 Ubuntu/WSL |   53m28s |  7m43s |
+| ARM, Octave 4.0.0 Raspbian       | 7h35m57s | 50m46s |
+| GPU, MatLAB                      | 1h01m12s |  8m28s |
