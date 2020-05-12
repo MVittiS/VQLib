@@ -29,57 +29,56 @@ std::vector<Index> VQIndicesFromDict(
     const auto dataSize = data.size();
     std::vector<Index> minIndices(dataSize);
 
-    bool allIndicesUsed;
-    do {
-        std::vector<size_t> histogram(dict.size());
-        std::fill(histogram.begin(), histogram.end(), 0);
+    std::vector<size_t> histogram(dict.size());
+    std::fill(histogram.begin(), histogram.end(), 0);
 
-        for (auto dataIdx = 0; dataIdx != dataSize; ++dataIdx) {
-            // The dictionary will be smaller in the majority of cases,
-            //  so it makes sense to iterate over the thing that is
-            //  likelier to still be in cache rather than the whole
-            //  dataset, as opposed to the MatLAB code. 
-            const auto dataEntry = data[dataIdx];
-            const auto currentDictSize = dict.size();
-            std::vector<float> distances(currentDictSize);
+    for (auto dataIdx = 0; dataIdx != dataSize; ++dataIdx) {
+        // The dictionary will be smaller in the majority of cases,
+        //  so it makes sense to iterate over the thing that is
+        //  likelier to still be in cache rather than the whole
+        //  dataset, as opposed to the MatLAB code. 
+        const auto dataEntry = data[dataIdx];
+        const auto currentDictSize = dict.size();
+        std::vector<float> distances(currentDictSize);
 
-            for (auto dictIdx = 0; dictIdx != currentDictSize; ++dictIdx) {
-                T rms(0);
+        for (auto dictIdx = 0; dictIdx != currentDictSize; ++dictIdx) {
+            T rms(0);
 
-                for (auto elem = 0; elem != width; ++elem) {
-                    const auto diff = dict[dictIdx][elem] - dataEntry[elem];
-                    rms += diff * diff;
-                    // if constexpr (std::is_floating_point_v<T>) {
-                    //     rms += std::fabs(diff);
-                    // } else {
-                    //     rms += std::abs(diff);
-                    // }
-                }
-                distances[dictIdx] = rms;
+            for (auto elem = 0; elem != width; ++elem) {
+                const auto diff = dict[dictIdx][elem] - dataEntry[elem];
+                rms += diff * diff;
+                // if constexpr (std::is_floating_point_v<T>) {
+                //     rms += std::fabs(diff);
+                // } else {
+                //     rms += std::abs(diff);
+                // }
             }
-
-            const auto minPos = std::min_element(distances.begin(), distances.end());
-            const auto minIdx = (Index)std::distance(distances.begin(), minPos);
-            minIndices[dataIdx] = minIdx;
-            ++histogram[minIdx];
+            distances[dictIdx] = rms;
         }
 
-        allIndicesUsed = std::all_of(histogram.begin(), histogram.end(),
-                                     [](auto x) { return x != 0; });
-        if (!allIndicesUsed) {
-            decltype(dict) newDict;
-            for (auto col = 0; col != dict.size(); ++col) {
-                if (histogram[col] != 0) {
-                    newDict.push_back(dict[col]);
-                }
-            }
-            const auto missingEntries = dict.size() - newDict.size();
-            const auto remainingIdxs = randomSamples(data.size(), missingEntries);
-            for (auto col = 0; col != missingEntries; ++col) {
-                newDict.push_back(data[remainingIdxs[col]]);
+        const auto minPos = std::min_element(distances.begin(), distances.end());
+        const auto minIdx = (Index)std::distance(distances.begin(), minPos);
+        minIndices[dataIdx] = minIdx;
+        ++histogram[minIdx];
+    }
+
+    const bool allIndicesUsed = std::all_of(histogram.begin(), histogram.end(),
+                                    [](auto x) { return x != 0; });
+    if (!allIndicesUsed) {
+        const auto missingEntries = 
+            std::accumulate(histogram.begin(), histogram.end(), 0,
+                            [](auto acc, auto h) { return acc + (h == 0); });
+        const auto randomIdxs = randomSamples(data.size(), missingEntries);
+
+        auto remainingIdx = 0;
+        for (auto col = 0; col != dict.size(); ++col) {
+            if (histogram[col] == 0) {
+                // Force at least one sample to become a new dict element,
+                //  which will be picked up during the next iteration
+                minIndices[randomIdxs[remainingIdx++]] = col;
             }
         }
-    } while (!allIndicesUsed);
+    }
 
     return minIndices;
 }
